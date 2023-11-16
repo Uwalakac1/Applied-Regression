@@ -1,0 +1,99 @@
+---
+title: "Uwalaka_Chiagozie_Lab_6"
+output:
+  html_document:
+    df_print: paged
+---
+```{r}
+library(readxl)
+# install.packages("rsm")
+library("rsm")
+```
+
+
+Problem 1
+
+```{r}
+raw_df<-read_excel("C:\\Users\\User\\Desktop\\UHD\\2023\\STAT4310\\Data Sets\\Chapter 7\\Problems\\data-prob-7-2.XLS")
+rocket_data<-data.frame(raw_df)
+attach(rocket_data)
+
+#A
+model<-lm(y~I(x)+I(x^2), rocket_data)
+
+
+#B
+summary(model)
+
+#C
+anova(model)
+
+detach(rocket_data)
+```
+
+Problem 2
+
+```{r}
+data_raw<-read_excel("C:\\Users\\User\\Desktop\\UHD\\2023\\STAT4310\\Data Sets\\Chapter 7\\Problems\\data-prob-7-15.XLS")
+vapor_df<-data.frame(data_raw)
+attach(vapor_df)
+
+#A
+model2 <- lm(y ~ x, vapor_df)
+plot(vapor_df$x, vapor_df$y, pch=16)
+
+#B
+plot(predict(model2),                                # Draw plot using Base R
+     vapor_df$y,
+     xlab = "Predicted Values",
+     ylab = "Observed Values")
+abline(a = 0,                                        # Add straight line
+       b = 1,
+       col = "red",
+       lwd = 2)
+
+#C
+res<-resid(model2)
+qqnorm(res)
+qqline(res)
+
+#D
+mod <- lm(y~I(x)+I(x^2), vapor_df)
+
+#E
+plot(predict(mod),                                # Draw plot using Base R
+     vapor_df$y,
+     xlab = "Predicted Values",
+     ylab = "Observed Values")
+abline(a = 0,                                        # Add straight line
+       b = 1,
+       col = "red",
+       lwd = 2)
+
+res<-resid(mod)
+qqnorm(res)
+qqline(res)
+
+#Yes, the second order model is proven to be more effecient because of as shown in the plot, but the in terms of the residuals the better model is the first order model.
+detach(vapor_df)
+```
+
+Problem 3
+```{r}
+data7.6<-read_excel("C:\\Users\\User\\Desktop\\UHD\\2023\\STAT4310\\Data Sets\\Chapter 7\\Problems\\data-prob-7-6.XLS")
+CS_Drink<-data.frame(data7.6)
+attach(CS_Drink)
+
+#A
+
+model3<- rsm(y~SO(x1,x2), CS_Drink)
+#B
+summary(model3)
+
+#C
+aov(model3)
+
+#D
+## t does not look like the interaction terms have any effect on the model.
+```
+

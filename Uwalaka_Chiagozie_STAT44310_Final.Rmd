@@ -1,0 +1,261 @@
+---
+title: "Uwalaka_Chiagozie_STAT44310_Final"
+output:
+  word_document: default
+  html_notebook: default
+editor_options:
+  chunk_output_type: inline
+---
+
+```{r}
+#install.packages("readxl")
+library(readxl)
+#install.packages("dplyr")
+library(dplyr)
+#install.packages("lmtest")
+library(lmtest)
+#install.packages("rsm")
+library("rsm")
+#install.packages("faraway")
+library(faraway)
+#install.packages("nnet")
+library(nnet)
+#install.packages("ModelMetrics")
+library(ModelMetrics)
+
+```
+
+```{r}
+data<-read_excel("C:\\Users\\User\\Desktop\\UHD\\2023\\STAT4310\\Data Sets\\Appendices\\data-table-B-16.xls")
+Rossman<-data.frame(data)
+Rossman<-Rossman %>% select(-Country)
+attach(Rossman)
+```
+
+Problem 1
+```{r}
+#A
+model1<-lm(LifeExp~People.per.TV+People.per.Dr, Rossman)
+
+model2<-lm(LifeExpMale~People.per.TV+People.per.Dr, Rossman)
+
+model3<-lm(LifeExpFemale~People.per.TV+People.per.Dr, Rossman)
+
+#B
+summary(model1) #Model 1 has a pvalue of 4.623e-5 which is a very small number and we can conclude that it is not significant. 
+summary(model2) #Model 2 has a pvalue of 7.863e-05 which is also a very small number and we can conclude that this model is not significant. 
+summary(model3) #Model 3 has a pvalue of 3.279e-05 which is also a very small number but not as small as  the other two and we can conclude that this model is not significant.
+
+#C
+coeftest(model1)
+coeftest(model2)
+coeftest(model3)
+
+
+#D
+##R squared
+summary(model1)$r.squared #The R^2 for model 1 is .4347.
+summary(model2)$r.squared #The R^2 for model 2 is .4172765.
+summary(model3)$r.squared #The R^2 for model 3 is 0.4456856.
+
+## Adjusted R squared
+summary(model1)$adj.r.squared #The adjusted R^2 for model 1 is 0.4023928.
+summary(model2)$adj.r.squared #The adjusted R^2 for model 2 is 0.383978.
+summary(model3)$adj.r.squared #The adjusted R^2 for model 3 is 0.4140105.
+
+#E
+confint(model1, "People.per.Dr",.95) # The 95% confidence interval of model 1 for the regression coefficient People.per.Dr is [-0.0008563196, -3.777668e-05].
+confint(model2, "People.per.Dr",.95) # The 95% confidence interval of model 2 for the regression coefficient People.per.Dr is [-0.0009470177, -1.008023e-05].
+confint(model3, "People.per.Dr",.95) # The 95% confidence interval of model 3 for the regression coefficient People.per.Dr is [-0.0007670492, -5.007977e-05].
+
+```
+
+Problem 2
+```{r}
+# A 
+model2 #Life exp MALE model
+res2<-residuals(model2)
+qqnorm(res2)
+qqline(res2) #According to the plot we can see that some points deviate from the line, so we can assume that our model does not follow a normal distribution. 
+
+#B
+## model1 lifeExp response
+res1<-residuals(model1)
+plot(res1, predict(model1), main = "Model1: Residuals Vs. Prediction")
+## model2 LifeExp Male response
+plot(res2, predict(model2), main = "Model2 Residuals Vs. Prediction")
+## model3 LifeExp Female response
+res3<-residuals(model3)
+plot(res3, predict(model3), main = "Model3: Residuals Vs. Prediction")
+```
+
+Problem 3
+```{r}
+temp<-c(rep(900,5),rep(910,4),rep(920,5),rep(930,4))
+density<-c(21.8,21.9,21.7,21.6,21.7,22.7,22.4,22.5,22.4,23.9,22.8,22.8,22.6,22.5,23.4,23.2,23.3,22.9)
+ceramic<-data.frame(temp, density)
+#A 
+model4<-lm(density~temp, ceramic)
+summary(model4)
+
+#B
+#Ho= Temperature has no effect on density
+#HA= Temperature has significant effect on density.
+# The p-value of our model 3.176e-06 which is less than .05 therefore disproving our null hypothesis which means that temperature does have a significant on the density of the ceramic.
+
+#C
+summary(model4)$coefficients
+
+
+
+```
+Problem 4
+```{r}
+Batch<- c(rep("A",6),rep("B",6),rep("C", 6))
+Pressure<-c(rep(400,2),rep(500,2), rep(600,2), rep(400,2), rep(500,2), rep(600,2), rep(400,2), rep(500,2), rep(600,2))
+Strength<-c(198.4, 198.6, 199.6, 200.4, 200.6, 200.9, 197.5, 198.1, 198.7, 198.0, 199.6, 199.0, 197.6, 198.4, 197.0, 197.8, 198.5, 199.8)
+
+vat_batch<-data.frame(Batch, Pressure, Strength)
+vat_batch$Pressure <-as.factor(vat_batch$Pressure)
+
+#A
+model5<-lm(Strength~Batch+Pressure, vat_batch)
+summary(model5)
+anova(model5)
+
+#B
+# TukeyHSD(model5) testing something ignore
+summary(model5)
+## As you can see from the output the p value for Batch factor is less than .05 and therefore it is far from significant.
+
+#C 
+## For pressurethe p value is also less than .05 so it holds no significance.
+
+#D
+## The interactiction between also holds a low pvalue and will carry little to no significance.
+#E
+model5.red<-step(model5)
+summary(model5.red) #Our p-values did not change with our reduced model.
+```
+
+Problem 5
+```{r}
+data7.6<-read_excel("C:\\Users\\User\\Desktop\\UHD\\2023\\STAT4310\\Data Sets\\Chapter 7\\Problems\\data-prob-7-6.XLS")
+CS_Drink<-data.frame(data7.6)
+attach(CS_Drink)
+
+#A
+model6<- rsm(y~SO(x1,x2), CS_Drink)
+
+#B
+summary(model6)
+
+#C Skipped
+
+#D
+## The interaction term has a pvalue of 0.18784 which is greater than .05 therefore it have a little significance to the model
+
+#E 
+## The order term x1^2  has pvalue of 0.15194 and the other second order term x2^2 has pvalue of  0.01185; The first term has more significance to the model than the second term.
+
+```
+
+Problem 6 
+```{r}
+data<-read.csv("C:\\Users\\User\\Desktop\\UHD\\2023\\STAT4310\\Data Sets\\orings.csv")
+Orings<-data.frame(data)
+attach(Orings)
+
+#A
+model7<-glm(At.Least.One.O...ring.Failure~Temperature.at.Launch, 
+            family = 'binomial', data =Orings)
+summary(model7)
+model7.pred<- predict(model7, newdata = Orings, type = "response")
+
+plot(At.Least.One.O...ring.Failure~Temperature.at.Launch, Orings, col="blue4")
+lines(Orings$Temperature.at.Launch, model7.pred, col="red4")
+
+#B
+odds.rate<- exp(model7$coefficients[2])
+odds.rate # The odds of having faliure over success is 0.8425515 as to the odds having failure over success for one ring.
+
+#C
+prob.50F<-exp(model7$coefficients[1]+model7$coefficients[2]*50)/
+  (1+exp(model7$coefficients[1] + model7$coefficients[2]*50))
+## 0.9096463 
+
+#D
+prob.75F<-exp(model7$coefficients[1]+model7$coefficients[2]*75)/
+  (1+exp(model7$coefficients[1] + model7$coefficients[2]*75))
+## 0.1219933
+
+#E
+prob.31F<-exp(model7$coefficients[1]+model7$coefficients[2]*31)/
+  (1+exp(model7$coefficients[1] + model7$coefficients[2]*31))
+## 0.9961828
+
+#F
+
+summary(model7)
+# Deviance Residuals: 
+#     Min       1Q   Median       3Q      Max  
+# -1.2125  -0.8253  -0.4706   0.5907   2.0512
+
+```
+
+Problem 7
+```{r}
+#A
+data("nepali")
+nepali<-na.omit(nepali)
+attach(nepali)
+
+model<-multinom(died~.-id, nepali)
+summary(model)
+
+#B 
+red_model<-step(model)
+summary(red_model)
+
+#C 
+fitted<- red_model$fitted.values
+head(fitted)
+
+# D
+prediction <- predict(red_model, interval="accuracy")
+table(prediction, nepali$died)
+
+#E
+newdata<-data.frame(id,sex=1, wt=mean(wt), ht=mean(ht), mage=mean(mage), lit=mean(lit), died=mean(died), alive=mean(alive), age=mean(age))
+pred <- predict(model, newdata, se=TRUE, interval="prediction")
+pred
+
+```
+
+Problem 8
+```{r}
+data<-read_xls("C:\\Users\\User\\Desktop\\UHD\\2023\\STAT4310\\data-table-B3.XLS")
+gasoline<-data.frame(data)
+attach(gasoline)
+index<- sample(1:2, nrow(gasoline), prob=c(.8,.2), replace=TRUE)
+train.data<- gasoline[index==1, ]
+train.data<-na.omit(train.data)
+test.data<- gasoline[index == 2, ]
+
+#A
+summary(gasoline) #Statistical properties of each column in our data from min to max and mean.
+
+#B
+model8 <- lm(y~., data=train.data)
+model8_red <- step(model8) #The coefficients and the fitted values both seem reasonalbe.
+summary(model8_red)
+
+#C
+new.data <- data.frame(test.data[ , -1])
+prediction<- predict(model8_red, newdata=new.data)
+data.frame(MSE<-mse(prediction, test.data$y),
+ RMSE<-rmse(prediction, test.data$y),
+ MAE <- mae(prediction, test.data$y))
+#From our output; we observed a residual average of 2.853677, a residual variance of 16.30177, and a residuals std of 4.037545, which makes sense since standard deviation is just the square root of the variance. 	
+```
+

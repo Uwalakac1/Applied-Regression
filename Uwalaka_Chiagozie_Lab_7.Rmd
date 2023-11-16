@@ -1,0 +1,116 @@
+---
+title: "R Notebook"
+output:
+  word_document: default
+  html_notebook: default
+---
+
+```{r}
+#install.packages("quantmod")
+library(quantmod)
+```
+
+
+1) Study 3 stocks , for a period of 3 years:
+```{r}
+start<- as.Date("2019-12-31")
+end<- as.Date("2022-12-31")
+AAPL <-getSymbols("AAPL",from=start, to=end, auto.assign=F)
+TSLA <-getSymbols("TSLA",from=start, to=end, auto.assign=F)
+MSFT <-getSymbols("MSFT",from=start, to=end, auto.assign=F)
+AAPL.return <- dailyReturn(AAPL$AAPL.Close)
+TSLA.return <- dailyReturn(TSLA$TSLA.Close)
+MSFT.return <- dailyReturn(MSFT$MSFT.Close)
+
+#I Calculate the annualized return and annualized risk.
+
+returns <-cbind(AAPL.return, TSLA.return, MSFT.return)
+colnames(returns)<- c("AAPL.ret", "TSLA.ret", "MSFT.ret")
+head(returns)
+
+#APPL
+AAPL.mu <- mean(AAPL.return)
+AAPL.sd <- sd(AAPL.return)
+c(AAPL.mu, AAPL.sd)
+AAPL.mu.ann <- AAPL.mu *252
+AAPL.sd.ann <- AAPL.sd*sqrt(252)
+c(AAPL.mu.ann, AAPL.sd.ann)
+
+# TESLA
+TSLA.Close <- Cl(TSLA)
+TSLA.return<- dailyReturn(TSLA.Close)
+TSLA.mu <- mean(AAPL.return)
+TSLA.sd <- sd(TSLA.return)
+c(TSLA.mu, TSLA.sd)
+TSLA.mu.ann <- TSLA.mu *252
+TSLA.sd.ann <- TSLA.sd*sqrt(252)
+c(TSLA.mu.ann, TSLA.sd.ann)
+
+#MSFT
+MSFT.mu <- mean(MSFT.return)
+MSFT.sd <- sd(MSFT.return)
+c(MSFT.mu, MSFT.sd)
+MSFT.mu.ann <- MSFT.mu *252
+MSFT.sd.ann <- MSFT.sd*sqrt(252)
+c(MSFT.mu.ann, MSFT.sd.ann)
+
+#II Plot returns (histogram and density), separately or on same plot
+
+hist(AAPL.return, col="red")
+hist(TSLA.return, col="blue")
+hist(MSFT.return, col="green")
+
+
+AAPL.CP<- cumprod(1+ AAPL.return)
+TSLA.CP <- cumprod(1+ TSLA.return)
+MSFT.CP <- cumprod(1+ MSFT.return)
+
+#III Plot the Cumulative return on same plot.
+
+plot(AAPL.CP, type="l", ylim=c(0, 3))
+lines(TSLA.CP, type="l", col="red")
+lines(MSFT.CP, type="l", col="green")
+```
+
+
+2) Calculate the beta’s of those stocks, by
+```{r}
+# I Read the Treasury Risk- free rate
+ff<- read.csv(file.choose(), header=T, skip=4)
+dates <- as.Date(ff$X, format="%Y%m%d")
+ff <- data.frame(dates, ff)
+head(ff)
+ff$date <- as.Date(ff$X, "%Y%m%d")
+ff.new <- ff[ ff$date >= '2019-12-31' & ff$date <= '2022-12-31', ]
+AAPL.Ret.df <-data.frame(AAPL.return)
+AAPL.Ret.df$date <- index(AAPL.return)
+AAPL.data <- merge( AAPL.Ret.df, ff.new, by.x= "date", all.x=T)
+head(AAPL.data)
+
+
+#II Read the Benchmark return (SP500)
+bench<-getSymbols.yahoo("^GSPC", from=start, to=end, periodicity = "daily",auto.assign=F)[ ,4]
+bench.returns <- dailyReturn(bench) 
+plot(bench, , main = "SP500")
+
+
+#III
+rf<-getSymbols("TB3MS",src="FRED" ,auto.assign = F)
+date<- as.Date(index(rf))
+rf1 <- rf[ date >= "2019-12-31" & date<="2022-12-31", ]
+AAPL.excess <- AAPL.return -rf1
+bench.excess <- bench.returns -rf1
+AAPL.beta<- coefficients(lm(AAPL.excess ~ bench.excess ))[2]
+
+TSLA.excess <- TSLA.return -rf1
+bench.excess <- bench.returns -rf1
+TSLA.beta<- coefficients(lm(TSLA.excess ~ bench.excess ))[2]
+TSLA.beta
+
+MSFT.excess <- MSFT.return -rf1
+bench.excess <- bench.returns -rf1
+MSFT.beta<- coefficients(lm(MSFT.excess ~ bench.excess ))[2]
+MSFT.beta
+# summary(lm(MSFT.excess ~ bench.excess ))
+```
+

@@ -1,0 +1,333 @@
+---
+title: "Uwalaka_Chiagozie_STAT4310_Midterm"
+output:
+  word_document: default
+  html_document:
+    df_print: paged
+---
+
+```{r}
+####### NOTE 
+###Feel free to change the directories to read.csv(file.choose())
+
+#install.packages("readxl")
+library(readxl)
+
+#install.packages("corrplot")
+library(corrplot)
+
+#install.packages("MASS")
+library(MASS)
+
+#install.packages("ggplot2")
+library(ggplot2)
+
+#install.packages("rsm")
+library("rsm")
+
+#install.packages("ggfortify")
+library(ggfortify)
+
+#install.packages("wooldridge")
+library(wooldridge)
+
+#install.packages("psych")
+library(psych)
+
+#install.packages("dplyr")
+library(dplyr)
+
+#install.packages("rsm")
+library(rsm)
+```
+
+
+1
+```{r}
+data<-read_excel("C:\\Users\\User\\Desktop\\UHD\\2023\\STAT4310\\Data Sets\\Chapter 2\\Problems\\data-prob-2-13.XLS")
+
+cali_Air<-data.frame(data)
+attach(cali_Air)
+
+#A make scatter plot of data
+plot(days, index)
+
+#B
+model.1<-lm(index~days, cali_Air)
+
+#C Test Significance of regression ANOVA(F-TEST)
+
+anova(model.1)
+
+
+#D cal and plot 95% confidence and prediction brands ()
+plot(cali_Air$days, cali_Air$index, xlab="Days", ylab="Index", main="Regression")
+abline(model.1, col="blue")
+conf_interval_3 <- predict(model.1, newdata=data.frame(Days=3), interval="confidence",
+                         level = 0.95)
+summary(cali_Air$days)
+
+newx <- seq(8, 105, by=0.1)
+
+conf_interval <- predict(model.1, newdata=data.frame(days=newx), interval="confidence",
+                         level = 0.95)
+lines(newx, conf_interval[,2], col="blue", lty=2)
+lines(newx, conf_interval[,3], col="blue", lty=2)
+
+```
+
+
+confint(model.1,.level=95)
+plot(days~index, data=cali_Air, type="n")
+abline(model.1)
+plot(predict(model.1, newdata = data.frame(x=8)), index)
+plot(confint(model.1,.level=95))
+
+Problem 2
+```{r}
+data<-read_excel("C:\\Users\\User\\Desktop\\UHD\\2023\\STAT4310\\Data Sets\\Chapter 2\\Problems\\data-prob-2-18.XLS")
+
+Wall_street<- data.frame(data)
+Wall_street<-na.omit(Wall_street)
+attach(Wall_street)
+
+#A
+model.2<-lm(Returned.Impressions.per.week..millions.~Amount.Spent..Millions., Wall_street)
+summary(model.2)
+
+#B
+# Since the P-value: .001389 is less than .05  than there is significant between the amount a company spends and retained impressions.
+
+#C
+pred <- predict(model.2, Wall_street, interval = "confidence", level = 0.95)
+plot(Wall_street$Amount.Spent..Millions., Wall_street$Returned.Impressions.per.week..millions., xlab = "Ad Spend", ylab = "Impressions", main = "Simple Linear Regression")
+abline(model.2)
+lines(Wall_street$Amount.Spent..Millions., pred[,3], lty = "dashed", col = "blue")
+lines(Wall_street$Amount.Spent..Millions., pred[,2], lty = "dotted", col = "red")
+#use pred[,1] for confidence intervals and pred[,2] for predictions
+pred[,3]
+pred[,2]
+
+#D
+mci_data <- data.frame(Amount.Spent..Millions.=26.9) #  this is to store the value for mci doesn't affect the origion Amount spent 
+conf_int <- predict(model.2, mci_data, interval = "confidence", level = 0.95)
+pred_int <- predict(model.2, mci_data, interval = "prediction", level = 0.95)
+conf_int
+conf_int
+```
+
+Problem 3
+```{r}
+data<-read_excel("C:\\Users\\User\\Desktop\\UHD\\2023\\STAT4310\\Data Sets\\Appendices\\data-table-B4.XLS")
+house_price<-data.frame(data)
+attach(house_price)
+#A
+model.3<-lm(y~. , house_price)
+summary(model.3)
+
+#B
+anova(model.3)
+summary(model.3)
+## As noted in the summary statistics, we can conlcude that since the pvalue=.000185<.05 we can reject Ho therefore their is little to no relationship betweenn selling price and regressors x1-x9.
+
+#C
+t.test(house_price)
+summary(model.3)
+## In the summary output we can see from the t values of each regressor that x1, x2, x5, and x9 have the most impact on the analysis of the selling price.
+
+#D
+SSE_Model=sum((model.3$residuals)^2) 
+SSE_Model
+summary(model.3)$coefficients[4:5, 4]
+# When all regressors are included, the living space will not be significant contributors in predicting the sales price. 
+
+#E 
+## To check for multicollinearity we can use the corrplot function to plot a correlation of our data.
+
+#corrplot(cor(house_price), method = "number")
+## The closer a correlation is to 1 or -1 the more likely their will be multicollinearity. As illustrated in the plot there is a high chance of multicollinearity in the model, in fact it is almost certain.
+
+# I did e just for fun you can check it if you like.
+
+```
+
+
+Problem 4
+```{r}
+#A
+qqnorm(model.3$residuals)
+qqline(model.3$residuals)
+
+##The normal distribution plot shows that the data is normal distributed since most of the data points lay on the line.
+
+
+#B
+par(mfrow=c(2,2))
+plot(model.3)
+plot(predict(model.3), residuals(model.3))
+
+#C
+bc1<-boxcox(model.3)
+lambda <- bc1$x[which.max(bc1$y)]
+new_model3<- lm(((y^lambda-1)/lambda)~., house_price)
+summary(model.3)$r.squared # 0.8531467
+summary(new_model3)$r.squared # 0.8701204
+
+summary(model.3)$s # 2.948949
+summary(new_model3)$s #  0.004278678
+
+## although though their is barely a change in the R^2 between the original model and the box-cox model, their is a huge difference in their standard deviations. 
+```
+
+
+
+Problem 5
+```{r}
+data<-read.csv("C:\\Users\\User\\Desktop\\UHD\\2023\\STAT4310\\Data Sets\\B15.csv")
+Mcd_Ayers<-data.frame(data)
+attach(Mcd_Ayers)
+#A
+model.4<- lm(MORT~PRECIP+EDUC+NONWHITE+NOX+SO2, Mcd_Ayers)
+summary(model.4)
+
+#B
+summary(model.4)$fstat
+## Since the pvalue=4.407e-12 is less than .05, we can conclude that this model is significant.
+
+#C
+#mean(Mcd_Ayers$PRECIP)
+#t.test(Mcd_Ayers$PRECIP, mu=37.6667)
+coef(summary(model.4))[, "t value"]
+
+#D 
+summary(model.4)$r.squared
+summary(model.4)$adj.r.squared
+
+
+#E
+confint(model.4, "SO2", level=0.95)
+
+```
+
+
+
+Problem 6
+```{r}
+mix_rate<-rep(c(150,175,200,225), each=4)
+tensile_s<-c(3129,3000,3065,3190,
+             3200,3300,2975,3150,
+             2800,2900,2985,3050,
+             2600,2700,2600,2765)
+
+tensile_df<-data.frame(mix_rate,tensile_s)
+attach(tensile_df)
+#A
+model.5<-rsm(tensile_s~FO(mix_rate), data = tensile_df)
+summary(model.5)
+
+#B
+summary(model.5)
+## Since our pvalue <2.2e-16 is a very small number, the rate is not signicant.
+
+#C
+summary(model.5)$coefficients[,1]
+summary(model.5)
+# The regression equation will be: y=4096.8750 + -6.0470x[1]. 
+```
+
+
+Problem 7
+```{r}
+data<-read_excel("C:\\Users\\User\\Desktop\\UHD\\2023\\STAT4310\\Data Sets\\Chapter 7\\Problems\\data-prob7-18.xlsx")
+
+pharmaceutical<-data.frame(data)
+attach(pharmaceutical)
+#A
+model.6<-rsm(y~SO(x1,x2,x3),pharmaceutical)
+summary(model.6)
+
+#B
+coef(summary(model.6))[, "t value"]
+#H0: x1
+
+#C
+res2<- residuals(model.6)
+qqnorm(res2)
+qqline(res2)
+plot(density(res2))
+autoplot(model.6)[1] # Here we can use the autoplot provided by the ggfortify library to plot obtain the residuals vs fitted plot. As you can see below the model is adequate due to the points being randomly place.
+
+#D
+canonical(model.6) # according to the analysis their is not maximum/minimum condition.
+xs <- canonical(model.6)$xs
+xs
+
+contour(model.6, ~ x1+x2+x3, image=TRUE, at=xs)
+
+```
+
+
+Problem 8
+```{r}
+#A
+data("catholic")
+catholic.df<-na.omit(data.frame(catholic))
+attach(catholic.df)
+
+#B
+model.7<-lm(read12~.-id, catholic.df)
+summary(model.7)
+
+#C
+catholic.cont<- catholic.df%>%select('read12', 'math12', 'motheduc', 'fatheduc', 'lfaminc')
+pairs.panels(catholic.cont) # Overall I see no reason add squared terms 
+
+#D
+cooks<-cooks.distance(model.7)
+summary(cooks)
+catholic.half<-catholic.df[cooks < median(cooks), ]
+model.7.half<-lm(read12~.-id, catholic.half)
+summary(model.7.half) # The multiple R^2 has increased to .5356 and the Adjusted R^2 has also increased to .5347.
+```
+
+
+Problem 9
+```{r}
+library(faraway)
+data("divusa")
+attach(divusa)
+#A
+model.8<- lm(divorce~.-year,divusa)
+summary(model.8)
+
+#B
+X<- model.matrix(model.8)
+
+#C
+y<-divusa$divorce # store the response as y.
+XtX <- t(X) %*% X 
+XtX.inv <- solve(XtX) #solve the inverse matrix
+coefs <- XtX.inv %*% t(X) %*% y 
+coef(model.8) # Check 
+
+#D
+diag <- diag(XtX.inv) #the diagonal entries of XtX_inv
+sigma <- 1.65  # residual standard error from summary(model.8)
+var.coefs <- sigma^2*diag
+var.coefs
+
+#E
+H <- X %*% XtX.inv %*% t(X) # or
+# hat(X) this function gives the same solution but row by row.
+
+#F
+res <- y - H %*% y # This for residuals using the calculate Hat matrix 
+head(res) #or residuls(model.8) gives the same residual 
+
+#G
+SSE<- sum(model.8$residuals^2) 
+res.standerror <- sqrt(SSE/(77-6))
+var.res.mat<-as.matrix(res.standerror)
+  
+```
+

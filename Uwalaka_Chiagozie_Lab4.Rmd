@@ -1,0 +1,94 @@
+---
+title: "Uwalaka_Chiagozie_Lab4"
+output:
+  html_document:
+    df_print: paged
+---
+
+
+```{r}
+library(faraway)
+library(sfsmisc)
+data("divusa")
+attach(divusa)
+# install.packages("skedastic", dependencies = c("Depends", "Imports"))
+library(skedastic)
+library(lmtest)
+library(car)
+```
+
+
+Problem 1
+```{r}
+# A 
+model_divorce<- lm(divorce~., divusa)
+X<-model.matrix(model_divorce)
+XtX.inv <- solve(t(X) %*% X)
+#B
+hat_mat<-hat(X)
+summary(hat_mat)
+res <- divorce - hat_mat %*% divorce 
+
+#C
+cook<-cooks.distance(model_divorce)
+plot(cook, ylab="Cooks distances")
+countries <- rownames(divusa)
+plot.new()
+identify(1:77, cook,countries)
+
+#D
+residuals(model_divorce)
+qqnorm(cook)
+```
+
+Problem 2
+```{r}
+setwd("C:/Users/User/Desktop/UHD/2023/STAT4310")
+library(readxl)
+rayon_white<-read_excel("data-prob-4-20.xls")
+rayon_data<- data.frame(rayon_white)
+attach(rayon_data)
+# A
+rayon.lm<- lm(y~ acid.temp+ acid.conc+ water.temp+ sulf.conc+ amt.bl., rayon_data)
+rayon_res<-residuals(rayon.lm)
+
+#B
+qqnorm(rayon_res)
+
+#C
+#breusch_pagan(rayon.lm)
+# blus(rayon.lm)
+bptest(rayon.lm)
+.05<.06 # since the p-value is greater than .05 we fail to reject the null hypothesis. It is not proven that the skedascecity is hetro.
+
+#D
+# durbinWatsonTest(rayon.lm)
+dwtest(rayon.lm) # This is a test for independance and since the p-value is less than .05 their is a auto correlation.
+cook<-cooks.distance(rayon.lm)
+plot(cook)
+identify(1:26, cook)
+rayon.new<-rayon_data[-c(11,12,14,18)]
+mod<-lm(y~., rayon.new)
+summary(mod)
+```
+Problem 3
+```{r}
+Air<-read_excel("data-table-B-15.xls")
+air_pollution<-data.frame(Air)
+attach(air_pollution)
+air_p.lm<-lm(SO2~ MORT+ PRECIP+ EDUC+ NONWHITE+ NOX, air_pollution)
+
+# A
+Air_p.res<- residuals(air_p.lm)
+dnorm(Air_p.res)
+
+#B 
+plot(Air_p.res)
+
+#C
+bptest(air_p.lm)
+
+#D
+dwtest(air_p.lm)
+```
+

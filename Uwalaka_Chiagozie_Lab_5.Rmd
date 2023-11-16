@@ -1,0 +1,78 @@
+---
+title: "Uwalaka_Chiagozie_Lab5"
+output:
+  html_document:
+    df_print: paged
+---
+
+
+Problem 1
+```{r}
+library(faraway)
+data("diabetes")
+attach(diabetes)
+
+data<-na.omit(diabetes)
+#A
+model1<-lm(glyhb ~ id-bp.1s-bp.1d-time.ppn, data)
+
+#B
+s_model1<- step(model1)
+
+#C
+
+
+#Dhea
+res<-aov(s_model1)
+hist(data$glyhb)
+qqnorm(res$residuals)
+qqline(res$residuals)
+shapiro.test(data$glyhb)
+
+anova(s_model1)
+```
+
+Problem 2
+```{r}
+library(readxl)
+data<-read_excel("C:\\Users\\User\\Desktop\\UHD\\2023\\STAT4310\\data-table-B3.XLS")
+gas_df<- data.frame(data)
+attach(gas_df)
+
+#A 
+model2<- lm(y~x10+x11, gas_df)
+summary(model2)
+anova(model2)
+# Since the pvalue is less than .05 the type of transmission does significantly affect the gasoline mileage 
+
+# B
+model_int<-lm(y~x10+x11+x10*x11, gas_df)
+summary(model_int)
+anova(model_int)
+#The p-value of 1.244e-11 is less than .05 therefore transmission has a huge effect on gasoline mileage. 
+
+```
+
+Problem 3
+
+```{r}
+#A
+data2<-read_excel("C:\\Users\\User\\Desktop\\UHD\\2023\\STAT4310\\Data Sets\\Chapter 8\\Problems\\data-prob-8-11.XLS")
+monte_df<-data.frame(data2)
+attach(monte_df)
+
+monte_model<-lm(y~percent, monte_df) 
+summary(monte_model)
+X<- model.matrix(monte_model)
+X
+
+#B
+summary(monte_model)
+
+#C
+t.test(y,percent)
+
+#D
+anova(monte_model)
+```
+

@@ -1,0 +1,40 @@
+---
+title: "Uwalaka_Chiagozie_Lab_9"
+output:
+  word_document: default
+  html_notebook: default
+---
+
+```{r}
+#install.packages("faraway")
+library(faraway)
+#install.packages("nnet")
+library(nnet)
+```
+
+```{r}
+#A Build a multinomial regression model using “died” as response, left out the id.
+data("nepali")
+nepali<-na.omit(nepali)
+attach(nepali)
+
+model<-multinom(died~.-id, nepali)
+summary(model)
+
+#B Build a reduced model.
+red_model<-step(model)
+summary(red_model)
+
+#C Check the deviance residual
+fitted<- red_model$fitted.values
+head(fitted)
+
+# D
+prediction <- predict(red_model, interval="prediction")
+table(prediction, nepali$died)
+
+#E
+newdata<-data.frame(id,sex=1, wt=mean(wt), ht=mean(ht), mage=mean(mage), lit=mean(lit), died=mean(died), alive=mean(alive), age=mean(age))
+pred <- predict(model, newdata, se=TRUE, interval="prediction")
+```
+

@@ -1,0 +1,136 @@
+---
+title: "Uwalaka_Chiagozie_Lab_3"
+output:
+  html_document:
+    df_print: paged
+---
+
+```{r}
+# install.packages("faraway")
+library(faraway)
+library(confintr)
+library(EnvStats)
+library(lmtest)
+```
+
+
+Problem 1
+
+```{r}
+data("savings")
+attach(savings)
+# A
+model<- lm(sr~., data=savings)
+#X<-model.matrix(model)
+savings.1<-savings[,-1]
+ones<-rep(1,50)
+X<-cbind(ones,savings.1)
+X<-as.matrix(X)
+y <- savings$sr
+XtX <- t(X)%*%X
+XtX_inv <- solve(XtX) 
+XtX_inv
+coefs <- XtX_inv %*% t(X) %*% y 
+coef(summary(model))
+
+# B 
+diag<-diag(XtX_inv)
+sigma<-3.803
+var_coefs<-sigma^2*diag
+stderr_coefs <- sqrt(var_coefs)
+stderr_coefs
+
+#RSE<-sqrt(deviance(model)/df.residual(model))
+#print("The Residual Standard Error is 3.802669") 
+
+#C
+cooks<-cooks.distance(model)
+model2<-lm(sr~., subset(savings,cooks<2.76e-02))
+plot(model2)
+anova(model2)
+SSE <- 158.600
+SSE
+
+SSR <- sum((fitted(model2) - mean(savings$sr))^2)
+SSR
+
+SST<-SSR+SSE
+SST
+df1<-4
+df2<-32
+F <- (SSR/df1)/(SSE/df2)
+F
+P_val<-1 -pf(F, df1, df2)
+#D 
+model_red<-lm(sr~. -dpi, savings)
+anova(model,model_red)
+#E
+predict(model_red)
+
+```
+
+
+problem 2
+```{r}
+library(readxl)
+N_data<-read_excel("data-table-B1.xls")
+NFL_Df<-data.frame(N_data)
+#A
+attach(NFL_Df)
+nfl_model<-lm(y~x2+x7+x8, as.data.frame(NFL_Df))
+
+#B
+anova(nfl_model)
+summary(nfl_model)
+
+#C
+t.test(x2,y, mu=0)
+t.test(x7,y, mu=0)
+t.test(x8,y, mu=0)
+# We can tell that the mu!=0 and the mean's are 20,30, or 40 times greater than the y value.
+
+#D
+nfl_model.red <- lm(y ~ x7, data=NFL_Df)
+anova(nfl_model.red, nfl_model) # the F_test between these two models in 27.455 and the F_test is less than 2x the t_test.
+
+```
+
+Problem 3
+```{r}
+Gas<-read_excel("data-table-B3.xls")
+GM_df<-data.frame(Gas)
+attach(GM_df)
+#A
+GM_model<-lm(y~x1+x6, as.data.frame(GM_df))
+summary.lm(GM_model)
+anova(GM_model)
+#B
+##𝑆𝑆𝐸 = Σ (𝑦𝑖 − 𝑦̂𝑖)^2∶ 𝑆𝑢𝑚 𝑆𝑞𝑢𝑎𝑟𝑒𝑠 𝐸𝑟𝑟𝑜𝑟
+#𝑆𝑆𝑅 = Σ (𝑦̂𝑖 − 𝑦̅)^2∶ 𝑆𝑢𝑚 𝑆𝑞𝑢𝑎𝑟𝑒𝑠 𝑅𝑒𝑔𝑟𝑒𝑠𝑠𝑖𝑜�
+summary.lm(GM_model)
+anova(GM_model)
+
+#C
+summary(GM_model)$r.squared 
+summary(GM_model)$adj.r.squared
+# As shown in the summary, the r^2=.7873 and adjR^2= .7726 
+
+#D
+confint(GM_model, 'x1', level=0.95)
+
+#E
+t.test(x1,y, mu=0)
+t.test(x6,y, mu=0)
+
+#H
+#install.packages("car")
+library(car)
+ncvTest(GM_model) # function for Breusch-Pagan test
+
+#I
+#install.packages("asbio")
+library(asbio)
+ci.sigma(c(x1,x6),conf = 0.95, S.sq = TRUE)
+```
+
+
